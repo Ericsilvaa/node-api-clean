@@ -1,6 +1,5 @@
-const MissingParamError = require("./missing-param-error");
-const ServerError = require("./server-error");
-const UnauthorizedError = require("./unauthorized-error");
+const ServerError = require("../errors/server-error");
+const UnauthorizedError = require("../errors/unauthorized-error");
 
 class HttpResponse {
   static badRequest(error) {

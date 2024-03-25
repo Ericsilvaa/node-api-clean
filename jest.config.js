@@ -8,6 +8,7 @@ const config = {
   coverageDirectory: "coverage",
   testEnvironment: "node",
   coverageProvider: "v8",
+  collectCoverageFrom: ["**/src/**/*.js"],
 };
 
 module.exports = config;
