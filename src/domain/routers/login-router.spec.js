@@ -57,20 +57,6 @@ describe("Login Router", () => {
     expect(httpResponse.body).toEqual(new ServerError());
   });
 
-  test("should return status 400 if no email is provided", async () => {
-    const { sut } = makeSut();
-    const httpRequest = {
-      body: {
-        password: "123_password",
-      },
-    };
-
-    const httpResponse = await sut.route(httpRequest);
-
-    expect(httpResponse.statusCode).toBe(400);
-    // comparation the values between the objects
-    expect(httpResponse.body).toEqual(new MissingParamError("email"));
-  });
   test("should return status 400 if no password is provided", async () => {
     const { sut } = makeSut();
     const httpRequest = {
@@ -84,6 +70,21 @@ describe("Login Router", () => {
     expect(httpResponse.statusCode).toBe(400);
     // comparation the values between the objects
     expect(httpResponse.body).toEqual(new MissingParamError("password"));
+  });
+
+  test("should return status 400 if no email is provided", async () => {
+    const { sut } = makeSut();
+    const httpRequest = {
+      body: {
+        password: "123_password",
+      },
+    };
+
+    const httpResponse = await sut.route(httpRequest);
+
+    expect(httpResponse.statusCode).toBe(400);
+    // comparation the values between the objects
+    expect(httpResponse.body).toEqual(new MissingParamError("email"));
   });
 
   test("Should call AuthUseCase with correct params", async () => {
