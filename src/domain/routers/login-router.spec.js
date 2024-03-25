@@ -1,9 +1,5 @@
-const {
-  MissingParamError,
-  InvalidParamError,
-  ServerError,
-  UnauthorizedError,
-} = require("../errors");
+const { InvalidParamError, MissingParamError } = require("../../utils/errors");
+const { ServerError, UnauthorizedError } = require("../errors");
 
 const LoginRouter = require("./login-router");
 

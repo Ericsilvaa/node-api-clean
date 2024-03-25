@@ -1,4 +1,5 @@
-const { MissingParamError, InvalidParamError } = require("../errors");
+const InvalidParamError = require("../../utils/errors/InvalidParamError");
+const MissingParamError = require("../../utils/errors/missing-param-error");
 const HttpResponse = require("../helpers/http-response");
 
 class LoginRouter {
