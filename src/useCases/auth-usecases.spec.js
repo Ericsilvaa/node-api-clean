@@ -67,89 +67,99 @@ const makeSut = () => {
 };
 
 describe("Auth UseCase", () => {
-  test("should throw if no email is provided", async () => {
-    const { sut } = makeSut();
-    const promise = sut.auth();
+  describe("Should throw ", () => {
+    test("if no email is provided", async () => {
+      const { sut } = makeSut();
+      const promise = sut.auth();
 
-    expect(promise).rejects.toThrow(new MissingParamError("email"));
+      expect(promise).rejects.toThrow(new MissingParamError("email"));
+    });
+
+    test(" if no password is provided", async () => {
+      const { sut } = makeSut();
+      const promise = sut.auth("any_email@mail.com");
+
+      expect(promise).rejects.toThrow(new MissingParamError("password"));
+    });
   });
 
-  test("should throw if no password is provided", async () => {
-    const { sut } = makeSut();
-    const promise = sut.auth("any_email@mail.com");
+  describe("#LoadUserRepository...", () => {
+    test("should call loadUserByEmailRepository with correct email", async () => {
+      const { sut, loadUserByEmailRepositorySpy } = makeSut();
+      sut.auth("any_email@mail.com", "any_password");
+      expect(loadUserByEmailRepositorySpy.email).toBe("any_email@mail.com");
+    });
 
-    expect(promise).rejects.toThrow(new MissingParamError("password"));
+    test("should throw if no loadUserByEmailRepository is provided", async () => {
+      const sut = new AuthUseCase();
+      const promise = sut.auth("any_email@mail.com", "any_password");
+
+      expect(promise).rejects.toThrow();
+    });
+
+    test("should throw if loadUserByEmailRepository has no load method", async () => {
+      const sut = new AuthUseCase({});
+      const promise = sut.auth("any_email@mail.com", "any_password");
+
+      expect(promise).rejects.toThrow();
+    });
+
+    test("should return null if an invalid email is provided", async () => {
+      const { sut, loadUserByEmailRepositorySpy } = makeSut();
+      loadUserByEmailRepositorySpy.user = null;
+      const accessToken = await sut.auth(
+        "invalid_email@mail.com",
+        "any_password"
+      );
+
+      expect(accessToken).toBeNull();
+    });
   });
 
-  test("should call loadUserByEmailRepository with correct email", async () => {
-    const { sut, loadUserByEmailRepositorySpy } = makeSut();
-    sut.auth("any_email@mail.com", "any_password");
+  describe("#Encrypter, ", () => {
+    test("should return null if an invalid password is provided", async () => {
+      const { sut, encrypterSpy } = makeSut();
+      encrypterSpy.isValid = false;
 
-    expect(loadUserByEmailRepositorySpy.email).toBe("any_email@mail.com");
+      const accessToken = await sut.auth(
+        "valid_email@mail.com",
+        "invalid_password"
+      );
+
+      expect(accessToken).toBeNull();
+    });
+
+    test("should call Encrypter with correct values", async () => {
+      const { sut, loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
+      await sut.auth("valid_email@mail.com", "any_password");
+
+      expect(encrypterSpy.password).toBe("any_password");
+      expect(encrypterSpy.hashedPassword).toBe(
+        loadUserByEmailRepositorySpy.user.password
+      );
+    });
   });
 
-  test("should throw if no loadUserByEmailRepository is provided", async () => {
-    const sut = new AuthUseCase();
-    const promise = sut.auth("any_email@mail.com", "any_password");
+  describe("#TokenGenerator, ", () => {
+    test("should call TokenGenerator with correct userId", async () => {
+      const { sut, loadUserByEmailRepositorySpy, tokenGeneratorSpy } =
+        makeSut();
+      await sut.auth("valid_email@mail.com", "valid_password");
 
-    expect(promise).rejects.toThrow();
-  });
+      expect(tokenGeneratorSpy.userId).toBe(
+        loadUserByEmailRepositorySpy.user.id
+      );
+    });
 
-  test("should throw if loadUserByEmailRepository has no load method", async () => {
-    const sut = new AuthUseCase({});
-    const promise = sut.auth("any_email@mail.com", "any_password");
+    test("should return an accessToken if correct credentials are provided", async () => {
+      const { sut, tokenGeneratorSpy } = makeSut();
+      const accessToken = await sut.auth(
+        "valid_email@mail.com",
+        "valid_password"
+      );
 
-    expect(promise).rejects.toThrow();
-  });
-
-  test("should return null if an invalid email is provided", async () => {
-    const { sut, loadUserByEmailRepositorySpy } = makeSut();
-    loadUserByEmailRepositorySpy.user = null;
-    const accessToken = await sut.auth(
-      "invalid_email@mail.com",
-      "any_password"
-    );
-
-    expect(accessToken).toBeNull();
-  });
-
-  test("should return null if an invalid password is provided", async () => {
-    const { sut, encrypterSpy } = makeSut();
-    encrypterSpy.isValid = false;
-
-    const accessToken = await sut.auth(
-      "valid_email@mail.com",
-      "invalid_password"
-    );
-
-    expect(accessToken).toBeNull();
-  });
-
-  test("should call Encrypter with correct values", async () => {
-    const { sut, loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
-    await sut.auth("valid_email@mail.com", "any_password");
-
-    expect(encrypterSpy.password).toBe("any_password");
-    expect(encrypterSpy.hashedPassword).toBe(
-      loadUserByEmailRepositorySpy.user.password
-    );
-  });
-
-  test("should call TokenGenerator with correct userId", async () => {
-    const { sut, loadUserByEmailRepositorySpy, tokenGeneratorSpy } = makeSut();
-    await sut.auth("valid_email@mail.com", "valid_password");
-
-    expect(tokenGeneratorSpy.userId).toBe(loadUserByEmailRepositorySpy.user.id);
-  });
-
-  test("should return an accessToken if correct credentials are provided", async () => {
-    const { sut, tokenGeneratorSpy } = makeSut();
-    const accessToken = await sut.auth(
-      "valid_email@mail.com",
-      "valid_password"
-    );
-
-    expect(accessToken).toBe(tokenGeneratorSpy.accessToken);
-    expect(accessToken).toBeTruthy();
+      expect(accessToken).toBe(tokenGeneratorSpy.accessToken);
+      expect(accessToken).toBeTruthy();
+    });
   });
 });
