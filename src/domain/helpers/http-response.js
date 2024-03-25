@@ -13,6 +13,11 @@ class HttpResponse {
       statusCode: 500,
     };
   }
+  static ok() {
+    return {
+      statusCode: 200,
+    };
+  }
 
   static unauthorizedError() {
     return {
