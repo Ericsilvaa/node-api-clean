@@ -3,7 +3,6 @@ const MissingParamError = require("../helpers/missing-param-error");
 const UnauthorizedError = require("../helpers/unauthorized-error");
 const ServerError = require("../helpers/server-error");
 const InvalidParamError = require("../helpers/InvalidParamError");
-const e = require("express");
 
 // factory
 const makeSut = () => {
@@ -21,6 +20,7 @@ const makeSut = () => {
 const makeEmailValidator = () => {
   class EmailValidatorSpy {
     isValid(email) {
+      this.email = email;
       return this.isEmailValid;
     }
   }
@@ -227,6 +227,21 @@ describe("Login Router", () => {
 
     expect(httpResponse.statusCode).toBe(500);
     expect(httpResponse.body).toEqual(new ServerError());
+  });
+
+  test("Should call EmailValidator with correct email", async () => {
+    const { sut, emailValidatorSpy } = makeSut();
+
+    const httpRequest = {
+      body: {
+        email: "eric@email.com",
+        password: "123_password",
+      },
+    };
+
+    await sut.route(httpRequest);
+
+    expect(emailValidatorSpy.email).toBe(httpRequest.body.email);
   });
 
   test("should return status 500 if no EmailValidator is provided", async () => {
