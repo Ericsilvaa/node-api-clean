@@ -1,0 +1,27 @@
+{
+  "name": "api-clean",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:w:all": "jest --watchAll --silent --noStackTrace",
+    "test:w": "jest --watch --silent --verbose --noStackTrace",
+    "test:ci": "jest --coverage --noStackTrace"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "keywords": [],
+  "author": "EricOliveira",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.2"
+  },
+  "dependencies": {
+    "express": "^4.19.1"
+  }
+}
