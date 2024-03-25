@@ -93,10 +93,39 @@ describe("Login Router", () => {
 
     const httpResponse = sut.route(httpRequest);
 
-    console.log(new UnauthorizedError());
-    console.log(httpResponse.body);
-
     expect(httpResponse.statusCode).toBe(401);
     expect(httpResponse.body).toEqual(new UnauthorizedError());
+  });
+
+  test("should return status 500 if no AuthUseCase is provided", () => {
+    const sut = new LoginRouter();
+
+    const httpRequest = {
+      body: {
+        email: "any_email",
+        password: "any_password",
+      },
+    };
+
+    const httpResponse = sut.route(httpRequest);
+
+    expect(httpResponse.statusCode).toBe(500);
+  });
+  test("should return status 500 if no AuthUseCase has no auth", () => {
+    // class AuthUseCaseSpy {}
+    // const authUseCaseSpy = new AuthUseCaseSpy();
+    // const sut = new LoginRouter(authUseCaseSpy); or //
+    const sut = new LoginRouter({});
+
+    const httpRequest = {
+      body: {
+        email: "any_email",
+        password: "any_password",
+      },
+    };
+
+    const httpResponse = sut.route(httpRequest);
+
+    expect(httpResponse.statusCode).toBe(500);
   });
 });
