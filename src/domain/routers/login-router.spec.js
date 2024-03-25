@@ -101,7 +101,7 @@ describe("Login Router", () => {
     expect(httpResponse.body).toEqual(new UnauthorizedError());
   });
   test("Should return 200 when valid credentials are provided ", () => {
-    const { sut } = makeSut();
+    const { sut, authUseCaseSpy } = makeSut();
 
     const httpRequest = {
       body: {
@@ -110,9 +110,10 @@ describe("Login Router", () => {
       },
     };
 
-    const httpResponse = sut.route(httpRequest);
+    const { statusCode, body } = sut.route(httpRequest);
 
-    expect(httpResponse.statusCode).toBe(200);
+    expect(statusCode).toBe(200);
+    expect(body.accessToken).toEqual(authUseCaseSpy.accessToken);
   });
 
   test("should return status 500 if no AuthUseCase is provided", () => {
