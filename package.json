@@ -6,7 +6,7 @@
   "scripts": {
     "test:w:all": "jest --watchAll --silent --noStackTrace",
     "test:w": "jest --watch --silent --verbose --noStackTrace",
-    "test:ci": "jest --coverage"
+    "test:ci": "jest --coverage --noStackTrace"
   },
   "lint-staged": {
     "*.js": [
