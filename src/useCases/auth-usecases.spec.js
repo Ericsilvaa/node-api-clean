@@ -1,7 +1,22 @@
 const { MissingParamError } = require("../utils/errors");
 const AuthUseCase = require("./auth-usecases");
 
-const makeSut = () => {
+const makeEncrypter = () => {
+  class EncrypterSpy {
+    async compare(password, hashedPassword) {
+      this.password = password;
+      this.hashedPassword = hashedPassword;
+
+      return this.isValid;
+    }
+  }
+  const encrypterSpy = new EncrypterSpy();
+  encrypterSpy.isValid = true;
+
+  return encrypterSpy;
+};
+
+const makeLoadUserByEmailRepository = () => {
   class LoadUserByEmailRepositorySpy {
     async load(email) {
       this.email = email;
@@ -9,12 +24,24 @@ const makeSut = () => {
       return this.user;
     }
   }
+
   const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy();
-  loadUserByEmailRepositorySpy.user = {};
-  const sut = new AuthUseCase(loadUserByEmailRepositorySpy);
+  loadUserByEmailRepositorySpy.user = {
+    password: "hashed_password",
+  };
+
+  return loadUserByEmailRepositorySpy;
+};
+
+const makeSut = () => {
+  const encrypterSpy = makeEncrypter();
+  const loadUserByEmailRepositorySpy = makeLoadUserByEmailRepository();
+
+  const sut = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy);
   return {
     sut,
     loadUserByEmailRepositorySpy,
+    encrypterSpy,
   };
 };
 
@@ -66,12 +93,24 @@ describe("Auth UseCase", () => {
   });
 
   test("should return null if an invalid password is provided", async () => {
-    const { sut } = makeSut();
+    const { sut, encrypterSpy } = makeSut();
+    encrypterSpy.isValid = false;
+
     const accessToken = await sut.auth(
       "valid_email@mail.com",
       "invalid_password"
     );
 
     expect(accessToken).toBeNull();
+  });
+
+  test("should call Encrypter with correct values", async () => {
+    const { sut, loadUserByEmailRepositorySpy, encrypterSpy } = makeSut();
+    await sut.auth("valid_email@mail.com", "any_password");
+
+    expect(encrypterSpy.password).toBe("any_password");
+    expect(encrypterSpy.hashedPassword).toBe(
+      loadUserByEmailRepositorySpy.user.password
+    );
   });
 });
