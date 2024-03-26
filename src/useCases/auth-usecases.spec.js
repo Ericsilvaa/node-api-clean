@@ -15,6 +15,17 @@ const makeUpdateAccessTokenRepository = () => {
 
   return updateAccessTokenRepositorySpy;
 };
+const makeUpdateAccessTokenRepositoryWithError = () => {
+  class UpdateAccessTokenRepositorySpy {
+    async update(userId, accessToken) {
+      throw new Error();
+    }
+  }
+  const updateAccessTokenRepositorySpy = new UpdateAccessTokenRepositorySpy();
+  // encrypterSpy.isValid = true;
+
+  return updateAccessTokenRepositorySpy;
+};
 const makeEncrypter = () => {
   class EncrypterSpy {
     async compare(password, hashedPassword) {
@@ -162,6 +173,7 @@ describe("Auth UseCase", () => {
       const invalid = {};
       const loadUserByEmailRepository = makeLoadUserByEmailRepository();
       const encrypter = makeEncrypter();
+      const tokenGenerator = maketokenGenerator();
 
       const suts = [].concat(
         new AuthUseCase(),
@@ -189,6 +201,18 @@ describe("Auth UseCase", () => {
           loadUserByEmailRepository,
           encrypter,
           tokenGenerator: invalid,
+        }),
+        new AuthUseCase({
+          loadUserByEmailRepository,
+          encrypter,
+          tokenGenerator,
+          updateAccessTokenRepository: null,
+        }),
+        new AuthUseCase({
+          loadUserByEmailRepository,
+          encrypter,
+          tokenGenerator,
+          updateAccessTokenRepository: invalid,
         })
       );
 
@@ -198,9 +222,10 @@ describe("Auth UseCase", () => {
       }
     });
 
-    test("should throw if no  asny dependency is provided", async () => {
+    test("should throw if no  any dependency is provided", async () => {
       const loadUserByEmailRepository = makeLoadUserByEmailRepository();
       const encrypter = makeEncrypter();
+      const tokenGenerator = maketokenGenerator();
 
       const suts = [].concat(
         new AuthUseCase({
@@ -214,6 +239,13 @@ describe("Auth UseCase", () => {
           loadUserByEmailRepository,
           encrypter,
           tokenGenerator: maketokenGeneratorWithError(),
+        }),
+        new AuthUseCase({
+          loadUserByEmailRepository,
+          encrypter,
+          tokenGenerator,
+          updateAccessTokenRepository:
+            makeUpdateAccessTokenRepositoryWithError(),
         })
       );
 
